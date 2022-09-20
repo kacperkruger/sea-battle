@@ -1,4 +1,4 @@
-package board.field
+package all.board.field
 
 trait FieldStatus
 
