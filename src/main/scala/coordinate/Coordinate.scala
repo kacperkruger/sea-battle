@@ -1,0 +1,3 @@
+package coordinate
+
+class Coordinate {}
