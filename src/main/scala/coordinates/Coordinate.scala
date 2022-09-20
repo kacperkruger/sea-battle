@@ -1,26 +1,29 @@
-package coordinate
+package coordinates
 
-import coordinate.error.{
+import board.BoardSize
+import coordinates.error.{
   CoordinateError,
+  FirstCoordinateMustBeLetter,
   FirstCoordinateOutOfRange,
   InvalidLengthOfCoordinates,
+  SecondCoordinateMustBeDigit,
   SecondCoordinateOutOfRange
 }
 
-final case class CoordinateA(x: Int, y: Int)
+final case class Coordinate(x: Int, y: Int)
 
-object CoordinateA {
-  private val Letters = LazyList.from('A').take(10).toVector
+object Coordinate {
+  private val Letters = LazyList.from('A').take(BoardSize.size).toVector
 
-  def parse(value: String): Either[CoordinateError, CoordinateA] = {
+  def parse(value: String): Either[CoordinateError, Coordinate] = {
     def fromLetterCoordinate(c: Char): Either[CoordinateError, Int] =
-      Letters.indexOf(c) match {
-        case -1 => Left(FirstCoordinateOutOfRange)
-        case x  => Right(x)
-      }
+      if (!c.isLetter) Left(FirstCoordinateMustBeLetter)
+      else if (!Letters.contains(c)) Left(FirstCoordinateOutOfRange)
+      else Right(Letters.indexOf(c))
 
-    def fromDigitCoordinate(c: Char): OptionT[CoordinateError, Int] = {
-      if (c.isDigit && c.asDigit - 1 >= 0 && c.asDigit - 1 < 10)
+    def fromDigitCoordinate(c: Char): Either[CoordinateError, Int] = {
+      if (!c.isDigit) Left(SecondCoordinateMustBeDigit)
+      else if (c.asDigit - 1 >= 0 && c.asDigit - 1 < BoardSize.size)
         Right(c.asDigit - 1)
       else Left(SecondCoordinateOutOfRange)
     }
@@ -30,9 +33,15 @@ object CoordinateA {
       else Left(InvalidLengthOfCoordinates)
     }
 
+    for {
+      charCoordinates <- divideCoordinates(value)
+      letterCoordinate <- fromLetterCoordinate(charCoordinates._1)
+      digitCoordinate <- fromDigitCoordinate(charCoordinates._2)
+    } yield Coordinate(letterCoordinate, digitCoordinate)
   }
-}
 
-object Playground extends App {
-  println("working")
+  extension (value: String) {
+    def parseCoordinates: Either[CoordinateError, Coordinate] =
+      Coordinate.parse(value)
+  }
 }
