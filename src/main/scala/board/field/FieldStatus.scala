@@ -1,6 +1,6 @@
 package board.field
 
-trait Field
+trait FieldStatus
 
-case object Empty extends Field
-case object Taken extends Field
+case object Empty extends FieldStatus
+case object Taken extends FieldStatus
