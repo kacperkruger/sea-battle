@@ -1,3 +1,3 @@
 package coordinate
 
-class Coordinate {}
+final case class Coordinate(x: Int, y: Int)
