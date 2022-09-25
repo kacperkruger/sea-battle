@@ -1,5 +1,8 @@
+package core
+
 import cats.data.{Validated, ValidatedNec}
 import cats.syntax.all.*
+import core.Direction
 
 final case class Coordinate(x: Int, y: Int)
 
@@ -91,6 +94,16 @@ object Coordinate {
     validate(stringCoordinate) andThen (s =>
       Coordinate(fromLetterCoordinate(s), fromDigitCoordinate(s)).validNec
     )
+  }
+
+  def move(coordinate: Coordinate, direction: Direction): Coordinate = {
+    import coordinate._
+    direction match {
+      case Direction.Down  => Coordinate(x, y - 1)
+      case Direction.Left  => Coordinate(x - 1, y)
+      case Direction.Right => Coordinate(x + 1, y)
+      case Direction.Up    => Coordinate(x, y + 1)
+    }
   }
 
   extension (coordinateString: String) {
