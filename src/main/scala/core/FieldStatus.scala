@@ -1,3 +1,5 @@
+package core
+
 trait FieldStatus
 
 object FieldStatus {

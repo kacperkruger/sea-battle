@@ -1,3 +1,5 @@
+package core
+
 import cats.Show
 import cats.kernel.Eq
 

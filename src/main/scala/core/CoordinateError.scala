@@ -1,3 +1,5 @@
+package core
+
 sealed trait CoordinateError {
   def errorMessages: String
 }
