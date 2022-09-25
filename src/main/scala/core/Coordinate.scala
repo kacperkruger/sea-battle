@@ -1,14 +1,3 @@
-package board.coordinates
-
-import board.BoardSize
-import board.coordinates.error.{
-  CoordinateError,
-  FirstCoordinateMustBeLetter,
-  FirstCoordinateOutOfRange,
-  InvalidLengthOfCoordinates,
-  SecondCoordinateMustBeDigit,
-  SecondCoordinateOutOfRange
-}
 import cats.data.{Validated, ValidatedNec}
 import cats.syntax.all.*
 

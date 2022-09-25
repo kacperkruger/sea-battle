@@ -1,15 +1,16 @@
-package board.coordinates
+package boards.coordinates
 
-import board.coordinates.Coordinate.parseCoordinate
-import board.coordinates.error.{
+import cats.data.Chain
+import cats.data.Validated.{Invalid, Valid}
+import core.{
+  Coordinate,
   FirstCoordinateMustBeLetter,
   FirstCoordinateOutOfRange,
   InvalidLengthOfCoordinates,
   SecondCoordinateMustBeDigit,
   SecondCoordinateOutOfRange
 }
-import cats.data.Chain
-import cats.data.Validated.{Invalid, Valid}
+import core.Coordinate.parseCoordinate
 
 class CoordinatesSpec extends munit.FunSuite {
   test("should parse correct coordinates") {

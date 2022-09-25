@@ -1,5 +1,3 @@
-package player.domain
-
 import cats.Show
 import cats.kernel.Eq
 
