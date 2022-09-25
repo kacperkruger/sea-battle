@@ -1,4 +1,4 @@
-package boards.coordinates
+package core
 
 import cats.data.Chain
 import cats.data.Validated.{Invalid, Valid}
