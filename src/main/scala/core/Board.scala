@@ -96,7 +96,11 @@ object Board {
       else Left(CanNotPlaceShip)
     }
 
-    def fire(coordinate: Coordinate): Either[BoardError, Board] = {
+    def shipHit(coordinate: Coordinate): Boolean = {
+      apply(coordinate) == FieldStatus.Ship
+    }
+
+    def shoot(coordinate: Coordinate): Either[BoardError, Board] = {
       if (!isCorrectCoordinate(coordinate)) Left(CoordinateOutOfOrder)
       else if (isEmpty(coordinate)) update(coordinate, FieldStatus.MissedShot)
       else if (apply(coordinate) == FieldStatus.Ship)
