@@ -95,7 +95,16 @@ object Board {
         )
       else Left(CanNotPlaceShip)
     }
+
+    def fire(coordinate: Coordinate): Either[BoardError, Board] = {
+      if (!isCorrectCoordinate(coordinate)) Left(CoordinateOutOfOrder)
+      else if (isEmpty(coordinate)) update(coordinate, FieldStatus.MissedShot)
+      else if (apply(coordinate) == FieldStatus.Ship)
+        update(coordinate, FieldStatus.DestroyedShip)
+      else Left(CanNotShootToShotField)
+    }
   }
+
   given Show[Board] with {
     def show(board: Board): String = {
       val numbers =
