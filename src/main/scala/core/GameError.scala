@@ -1,6 +1,6 @@
 package core
 
-sealed trait GameError {
+trait GameError {
   def errorMessage: String
 }
 
