@@ -3,7 +3,8 @@ package core
 trait FieldStatus
 
 object FieldStatus {
-  case object Ship extends FieldStatus
-  case object Empty extends FieldStatus
-  case object DestroyedShip extends FieldStatus
+  object Ship extends FieldStatus
+  object Empty extends FieldStatus
+  object DestroyedShip extends FieldStatus
+  object MissedShot extends FieldStatus
 }
