@@ -1,5 +1,7 @@
 package core
 
+import cats.{Show, syntax}
+import cats.syntax.show
 import core.Utilities.times
 
 import scala.annotation.tailrec
@@ -92,6 +94,30 @@ object Board {
           FieldStatus.Ship
         )
       else Left(CanNotPlaceShip)
+    }
+  }
+  given Show[Board] with {
+    def show(board: Board): String = {
+      val numbers =
+        LazyList.from(1).take(board.value.size).map(String.format("%1$2d", _))
+
+      val letters =
+        LazyList.from('A').take(board.value.size).map(_.toChar.toString)
+
+      ("   " + letters.mkString(" ") + "\n") + board.value
+        .zip(numbers)
+        .map { case (line, number) =>
+          (number + " ") + line
+            .map {
+              case FieldStatus.Empty         => " "
+              case FieldStatus.Ship          => "☐"
+              case FieldStatus.MissedShot    => "☉"
+              case FieldStatus.DestroyedShip => "☒"
+            }
+            .mkString(" ")
+        }
+        .mkString("\n")
+
     }
   }
 }
