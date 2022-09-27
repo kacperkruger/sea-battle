@@ -47,5 +47,28 @@ object Game {
       }
 
     }
+    def placeShip(
+        coordinate: Coordinate,
+        player: Player,
+        ship: Ship,
+        direction: Direction
+    ): Either[GameError, Game] = {
+      import game._
+      status match {
+        case Won(winner) => GameIsOver.asLeft
+        case OnGoing(nextPlayer) =>
+          if (player != nextPlayer) WrongPlayer.asLeft
+          player match {
+            case Player1 =>
+              for {
+                newBoard1 <- board1.placeShip(ship, coordinate, direction)
+              } yield Game(newBoard1, board2, OnGoing(Player2), moves + 1)
+            case Player2 =>
+              for {
+                newBoard2 <- board2.placeShip(ship, coordinate, direction)
+              } yield Game(board1, newBoard2, OnGoing(Player1), moves + 1)
+          }
+      }
+    }
   }
 }
