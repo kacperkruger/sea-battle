@@ -3,6 +3,7 @@ package core
 import cats.data.{Validated, ValidatedNec}
 import cats.syntax.all.*
 import core.Direction
+import core.Direction.{Up, Down, Left, Right}
 
 final case class Coordinate(x: Int, y: Int)
 
@@ -26,24 +27,25 @@ object Coordinate {
       else FirstCoordinateOutOfRange.invalidNec
     }
 
-    def lengthOfCoordinatesEqualTwo(
+    def lengthOfCoordinatesEqualTwoOr3(
         s: String
     ): ValidatedNec[CoordinateError, String] = {
-      if (s.length == 2) s.validNec
+      if (s.length == 2 || s.length == 3) s.validNec
       else InvalidLengthOfCoordinates.invalidNec
     }
 
     def secondCoordinateIsDigit(
         s: String
-    ): ValidatedNec[CoordinateError, String] = {
-      if (s.tail.head.isDigit) s.validNec
-      else SecondCoordinateMustBeDigit.invalidNec
-    }
+    ): ValidatedNec[CoordinateError, String] =
+      s.tail.toIntOption match {
+        case Some(_) => s.validNec
+        case None    => SecondCoordinateMustBeDigit.invalidNec
+      }
 
     def secondCoordinateCorrectRange(
         s: String
     ): ValidatedNec[CoordinateError, String] = {
-      val secondCoordinate = s.tail.head.asDigit - 1
+      val secondCoordinate = s.tail.toInt - 1
       if (secondCoordinate >= 0 && secondCoordinate <= BoardSize.size)
         s.validNec
       else SecondCoordinateOutOfRange.invalidNec
@@ -77,7 +79,7 @@ object Coordinate {
 
     }
 
-    lengthOfCoordinatesEqualTwo(stringCoordinate) *> validateFirstCoordinate(
+    lengthOfCoordinatesEqualTwoOr3(stringCoordinate) *> validateFirstCoordinate(
       stringCoordinate
     ) *> validateSecondCoordinate(stringCoordinate)
   }
@@ -89,7 +91,7 @@ object Coordinate {
       Letters.indexOf(s.head)
 
     def fromDigitCoordinate(s: String): Int =
-      s.tail.head.asDigit - 1
+      s.tail.toInt - 1
 
     validate(stringCoordinate) andThen (s =>
       Coordinate(fromLetterCoordinate(s), fromDigitCoordinate(s)).validNec
@@ -99,10 +101,10 @@ object Coordinate {
   def move(coordinate: Coordinate, direction: Direction): Coordinate = {
     import coordinate._
     direction match {
-      case Direction.Down  => Coordinate(x, y - 1)
+      case Direction.Down  => Coordinate(x, y + 1)
       case Direction.Left  => Coordinate(x - 1, y)
       case Direction.Right => Coordinate(x + 1, y)
-      case Direction.Up    => Coordinate(x, y + 1)
+      case Direction.Up    => Coordinate(x, y - 1)
     }
   }
 
