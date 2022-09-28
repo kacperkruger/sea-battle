@@ -17,6 +17,9 @@ object Ship {
   object Submarine extends Ship {
     override val size: Int = 3
   }
+  object Cruiser extends Ship {
+    override val size: Int = 3
+  }
   object Destroyer extends Ship {
     override val size: Int = 2
   }
@@ -26,6 +29,7 @@ object Ship {
       case Battleship => s"Battleship (${Battleship.size})"
       case Carrier    => s"Carrier (${Carrier.size})"
       case Destroyer  => s"Destroyer (${Destroyer.size})"
+      case Cruiser    => s"Cruiser (${Cruiser.size})"
       case Submarine  => s"Submarine (${Submarine.size})"
       case _          => "Unknown ship"
     }
