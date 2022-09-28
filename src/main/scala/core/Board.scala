@@ -1,7 +1,7 @@
 package core
 
-import cats.{Show, syntax}
-import cats.syntax.show
+import cats.Show
+import cats.syntax.all._
 import core.Utilities.times
 
 import scala.annotation.tailrec
@@ -24,7 +24,7 @@ object Board {
     }
 
     def isEmpty(coordinate: Coordinate): Boolean =
-      apply(coordinate) == FieldStatus.Empty
+      apply(coordinate) == Right(FieldStatus.Empty)
 
     def apply(coordinate: Coordinate): Either[BoardError, FieldStatus] = {
       import coordinate.*
@@ -64,15 +64,17 @@ object Board {
         acc: Boolean = true
     ): Boolean = {
       if (size == 0) acc
-      else if (!(isCorrectCoordinate(coordinate) && isEmpty(coordinate))) false
+      else if (!isEmpty(coordinate)) false
       else
+        println(s"$coordinate")
         canPlaceShip(
           Coordinate.move(coordinate, direction),
           size - 1,
-          direction,
-          true
+          direction
         )
     }
+
+    def numberOfShips: Int = board.value.map(_.count(_ == FieldStatus.Ship)).sum
 
     def placeShip(
         ship: Ship,
@@ -87,7 +89,7 @@ object Board {
         )
       )
         updateMultiply(
-          (1 to ship.size).toList
+          (0 until ship.size).toList
             .map(n =>
               times(coordinate, Coordinate.move(_: Coordinate, direction), n)
             ),
@@ -103,9 +105,9 @@ object Board {
     def shoot(coordinate: Coordinate): Either[BoardError, Board] = {
       if (!isCorrectCoordinate(coordinate)) Left(CoordinateOutOfOrder)
       else if (isEmpty(coordinate)) update(coordinate, FieldStatus.MissedShot)
-      else if (apply(coordinate) == FieldStatus.Ship)
-        update(coordinate, FieldStatus.DestroyedShip)
-      else Left(CanNotShootToShotField)
+      else if (apply(coordinate) == Right(FieldStatus.MissedShot))
+        Left(CanNotShootToShotField)
+      else update(coordinate, FieldStatus.DestroyedShip)
     }
   }
 
@@ -131,6 +133,15 @@ object Board {
         }
         .mkString("\n")
 
+    }
+  }
+
+  object ShowBoardWithoutShips {
+    given Show[Board] with {
+      def show(board: Board): String = {
+        val boardWithShips = Board.given_Show_Board.show(board)
+        boardWithShips.replace('☐', ' ')
+      }
     }
   }
 }
