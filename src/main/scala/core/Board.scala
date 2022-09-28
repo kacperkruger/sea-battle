@@ -135,13 +135,13 @@ object Board {
 
     }
   }
+}
 
-  object ShowBoardWithoutShips {
-    given Show[Board] with {
-      def show(board: Board): String = {
-        val boardWithShips = Board.given_Show_Board.show(board)
-        boardWithShips.replace('☐', ' ')
-      }
+object ShowBoardWithoutShips {
+  given Show[Board] with {
+    def show(board: Board): String = {
+      val boardWithShips = Board.given_Show_Board.show(board)
+      boardWithShips.replace('☐', ' ')
     }
   }
 }
