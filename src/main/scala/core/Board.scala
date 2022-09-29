@@ -128,37 +128,42 @@ object Board {
     else Board.update(board, coordinate, FieldStatus.DestroyedShip)
   }
 
+  def showHelper(
+      board: Board,
+      empty: String,
+      ship: String,
+      missedShot: String,
+      destroyedShip: String
+  ) = {
+    val numbers =
+      LazyList.from(1).take(board.value.size).map(String.format("%1$2d", _))
+
+    val letters =
+      LazyList.from('A').take(board.value.size).map(_.toChar.toString)
+
+    ("   " + letters.mkString(" ") + "\n") + board.value
+      .zip(numbers)
+      .map { case (line, number) =>
+        (number + " ") + line
+          .map {
+            case FieldStatus.Empty         => empty
+            case FieldStatus.Ship          => ship
+            case FieldStatus.MissedShot    => missedShot
+            case FieldStatus.DestroyedShip => destroyedShip
+          }
+          .mkString(" ")
+      }
+      .mkString("\n")
+
+  }
+
   given Show[Board] with {
-    def show(board: Board): String = {
-      val numbers =
-        LazyList.from(1).take(board.value.size).map(String.format("%1$2d", _))
-
-      val letters =
-        LazyList.from('A').take(board.value.size).map(_.toChar.toString)
-
-      ("   " + letters.mkString(" ") + "\n") + board.value
-        .zip(numbers)
-        .map { case (line, number) =>
-          (number + " ") + line
-            .map {
-              case FieldStatus.Empty         => " "
-              case FieldStatus.Ship          => "☐"
-              case FieldStatus.MissedShot    => "☉"
-              case FieldStatus.DestroyedShip => "☒"
-            }
-            .mkString(" ")
-        }
-        .mkString("\n")
-
-    }
+    def show(board: Board): String = Board.showHelper(board, " ", "☐", " ", "☒")
   }
 }
 
 object ShowBoardWithoutShips {
   given Show[Board] with {
-    def show(board: Board): String = {
-      val boardWithShips = Board.given_Show_Board.show(board)
-      boardWithShips.replace('☐', ' ')
-    }
+    def show(board: Board): String = Board.showHelper(board, " ", " ", "☉", "☒")
   }
 }
