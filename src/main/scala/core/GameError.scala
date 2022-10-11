@@ -17,3 +17,10 @@ object CanNotShootDuringPlacingPhase extends GameError:
 
 object CanNotFindPlayer extends GameError:
   override def errorMessage: String = "Can't find the player"
+
+object GameIsFull extends GameError:
+  override def errorMessage: String =
+    "This game is fully. Try to join to another game"
+
+object NotEnoughPlayers extends GameError:
+  override def errorMessage: String = "There is not enough players in this game"
