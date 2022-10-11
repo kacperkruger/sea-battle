@@ -158,7 +158,6 @@ final class GameRuntime(console: Console):
     for {
       connectedPlayer1Game <- connectPlayerLoop(game)
       connectedPlayer2Game <- connectPlayerLoop(connectedPlayer1Game)
-      _ = println(connectedPlayer2Game)
       _ <- console.printLine("\n-- Starting a new game --\n") >> loop(
         connectedPlayer2Game
       )
