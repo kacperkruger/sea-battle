@@ -1,77 +1,205 @@
 package core
 
 import cats.implicits.catsSyntaxEitherId
-import cats.syntax.all._
+import cats.syntax.all.*
+import core.Board.numberOfShips
 
 final case class Game(
     board1: Board,
     board2: Board,
+    player1: Option[Player],
+    player2: Option[Player],
     status: GameStatus,
     moves: Int
 )
 
 object Game {
-  def create(player1: Player, player2: Player): Game =
-    val board1 = Board.create(player1)
-    Game(board1, Board.create(player2), OnGoing(board1, PlacingPhase), 0)
+  def create(): Game = {
+    Game(Board.create(), Board.create(), None, None, WaitingForPlayers, 0)
+  }
+
+  def connect(game: Game, newPlayer: Player): Either[GameError, Game] = {
+    if (game.player1.isDefined && game.player2.isDefined) GameIsFull.asLeft
+    else if (game.player1.isDefined)
+      Game(
+        game.board1,
+        game.board2,
+        game.player1,
+        Some(newPlayer),
+        OnGoing(game.player1.get, PlacingPhase),
+        game.moves
+      ).asRight
+    else
+      Game(
+        game.board1,
+        game.board2,
+        Some(newPlayer),
+        game.player2,
+        WaitingForPlayers,
+        game.moves
+      ).asRight
+  }
 
   def update(
       game: Game,
-      board: Board,
-      status: GameStatus
-  ): Game = {
-    if (board.player == game.board1.player)
-      Game(board, game.board2, status, game.moves + 1)
-    else Game(game.board1, board, status, game.moves + 1)
+      nextBoard: Board
+  ): Either[GameError, Game] = {
+    game.status match {
+      case WaitingForPlayers => NotEnoughPlayers.asLeft
+      case Won(winner)       => GameIsOver.asLeft
+      case OnGoing(nextPlayer, phase) =>
+        phase match {
+          case PlacingPhase =>
+            updatePlacingPhase(game, nextPlayer, nextBoard).asRight
+          case PlayingPhase =>
+            updatePlayingPhase(game, nextPlayer, nextBoard).asRight
+        }
+    }
   }
 
-  def opponent(game: Game, board: Board): Either[GameError, Board] = {
-    if (board == game.board1) game.board2.asRight
-    else if (board == game.board2) game.board1.asRight
+  private def updatePlacingPhase(
+      game: Game,
+      nextPlayer: Player,
+      updatedBoard: Board
+  ): Game = {
+    if (
+      Board.numberOfShips(
+        updatedBoard
+      ) == 17 && game.player2.get == nextPlayer
+    )
+      Game(
+        game.board1,
+        updatedBoard,
+        game.player1,
+        game.player2,
+        OnGoing(game.player1.get, PlayingPhase),
+        game.moves + 1
+      )
+    else if (
+      Board.numberOfShips(
+        updatedBoard
+      ) == 17 && game.player1.get == nextPlayer
+    )
+      Game(
+        updatedBoard,
+        game.board2,
+        game.player1,
+        game.player2,
+        OnGoing(game.player2.get, PlacingPhase),
+        game.moves + 1
+      )
+    else if (game.player1.get == nextPlayer)
+      Game(
+        updatedBoard,
+        game.board2,
+        game.player1,
+        game.player2,
+        OnGoing(nextPlayer, PlacingPhase),
+        game.moves + 1
+      )
+    else
+      Game(
+        game.board1,
+        updatedBoard,
+        game.player1,
+        game.player2,
+        OnGoing(nextPlayer, PlacingPhase),
+        game.moves + 1
+      )
+  }
+
+  private def updatePlayingPhase(
+      game: Game,
+      nextPlayer: Player,
+      updatedBoard: Board
+  ): Game = {
+    if (
+      Board.numberOfShips(updatedBoard) == 0 && nextPlayer == game.player1.get
+    )
+      Game(
+        game.board1,
+        updatedBoard,
+        game.player1,
+        game.player2,
+        Won(nextPlayer),
+        game.moves + 1
+      )
+    else if (
+      Board.numberOfShips(updatedBoard) == 0 && nextPlayer == game.player2.get
+    )
+      Game(
+        updatedBoard,
+        game.board2,
+        game.player1,
+        game.player2,
+        Won(nextPlayer),
+        game.moves + 1
+      )
+    else if (nextPlayer == game.player1.get)
+      Game(
+        game.board1,
+        updatedBoard,
+        game.player1,
+        game.player2,
+        OnGoing(game.player2.get, PlayingPhase),
+        game.moves + 1
+      )
+    else
+      Game(
+        updatedBoard,
+        game.board2,
+        game.player1,
+        game.player2,
+        OnGoing(game.player1.get, PlayingPhase),
+        game.moves + 1
+      )
+  }
+
+  def findOpponent(game: Game, player: Player): Either[GameError, Board] = {
+    if (game.player1.contains(player)) game.board2.asRight
+    else if (game.player2.contains(player)) game.board1.asRight
     else CanNotFindPlayer.asLeft
   }
 
   def findBoard(game: Game, player: Player): Either[GameError, Board] = {
-    if (player == game.board1.player) game.board1.asRight
-    else if (player == game.board2.player) game.board2.asRight
+    if (game.player1.isDefined && player == game.player1.get)
+      game.board1.asRight
+    else if (game.player2.isDefined && player == game.player2.get)
+      game.board2.asRight
     else CanNotFindPlayer.asLeft
   }
 
   def shoot(
       game: Game,
       coordinate: Coordinate,
-      shootingBoard: Board
+      player: Player
   ): Either[GameError, Game] = {
     import game._
     status match {
-      case Won(winner) => GameIsOver.asLeft
-      case OnGoing(nextBoard, phase) =>
-        if (shootingBoard.player != nextBoard.player) WrongPlayer.asLeft
+      case WaitingForPlayers => NotEnoughPlayers.asLeft
+      case Won(winner)       => GameIsOver.asLeft
+      case OnGoing(nextPlayer, phase) =>
+        if (player != nextPlayer) WrongPlayer.asLeft
         else
           phase match {
             case PlacingPhase => CanNotShootDuringPlacingPhase.asLeft
             case PlayingPhase =>
               for {
-                opponent <- Game.opponent(game, shootingBoard)
+                opponentBoard <- Game.findOpponent(game, player)
                 newBoard <- Board.shoot(
-                  opponent,
+                  opponentBoard,
                   coordinate
                 )
-                isShipHit = Board.shipHit(opponent, coordinate)
-              } yield {
-                if (isShipHit)
-                  Game.update(
-                    game,
-                    newBoard,
-                    OnGoing(shootingBoard, PlayingPhase)
-                  )
-                else
-                  Game.update(
-                    game,
-                    newBoard,
-                    OnGoing(newBoard, PlayingPhase)
-                  )
-              }
+                isShipHit = Board.shipHit(opponentBoard, coordinate)
+                updatedGame <-
+                  if (isShipHit)
+                    Game.update(
+                      game,
+                      newBoard
+                    )
+                  else
+                    Game.update(game, newBoard)
+              } yield updatedGame
           }
     }
   }
@@ -79,46 +207,30 @@ object Game {
   def placeShip(
       game: Game,
       coordinate: Coordinate,
-      board: Board,
+      player: Player,
       ship: Ship,
       direction: Direction
   ): Either[GameError, Game] = {
     import game._
     status match {
-      case Won(winner) => GameIsOver.asLeft
-      case OnGoing(nextBoard, phase) =>
-        if (board.player != nextBoard.player) WrongPlayer.asLeft
+      case WaitingForPlayers => NotEnoughPlayers.asLeft
+      case Won(winner)       => GameIsOver.asLeft
+      case OnGoing(nextPlayer, phase) =>
+        if (player != nextPlayer) WrongPlayer.asLeft
         else
           phase match {
+            case PlayingPhase => CanNotPlaceDuringPlayPhase.asLeft
             case PlacingPhase =>
               for {
-                opponentBoard <- Game.opponent(game, board)
-                newBoard <- Board.placeShip(
+                board <- Game.findBoard(game, player)
+                updatedBoard <- Board.placeShip(
                   board,
                   ship,
                   coordinate,
                   direction
                 )
-              } yield {
-                if (Board.numberOfShips(newBoard) == 17)
-                  Game.update(
-                    game,
-                    newBoard,
-                    OnGoing(
-                      opponentBoard,
-                      if (opponentBoard.player == game.board1.player)
-                        PlayingPhase
-                      else PlacingPhase
-                    )
-                  )
-                else
-                  Game.update(
-                    game,
-                    newBoard,
-                    OnGoing(newBoard, PlacingPhase)
-                  )
-              }
-            case PlayingPhase => CanNotPlaceDuringPlayPhase.asLeft
+                updatedGame <- Game.update(game, updatedBoard)
+              } yield updatedGame
           }
     }
   }
