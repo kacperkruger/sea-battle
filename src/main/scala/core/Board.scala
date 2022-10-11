@@ -6,15 +6,14 @@ import core.Utilities.times
 
 import scala.annotation.tailrec
 
-case class Board(value: List[List[FieldStatus]], player: Player)
+case class Board(value: List[List[FieldStatus]])
 
 object Board {
-  def create(player: Player): Board = {
+  def create(): Board = {
     Board(
       List.fill(BoardSize.size)(
         List.fill(BoardSize.size)(FieldStatus.Empty)
-      ),
-      player
+      )
     )
   }
 
@@ -46,8 +45,7 @@ object Board {
       val line = board.value(y)
       Right(
         Board(
-          board.value.updated(y, line.updated(x, fieldStatus)),
-          board.player
+          board.value.updated(y, line.updated(x, fieldStatus))
         )
       )
     } else Left(CoordinateOutOfOrder)
@@ -134,7 +132,7 @@ object Board {
       ship: String,
       missedShot: String,
       destroyedShip: String
-  ) = {
+  ): String = {
     val numbers =
       LazyList.from(1).take(board.value.size).map(String.format("%1$2d", _))
 
