@@ -20,7 +20,7 @@ $ sbt run
 
 The project is a simple turn based variations about sea battle game, for two players on one screen.
 
-The game is about 
+The game is consist of placing your ships on the board and the destroying all your opponent's ships. 
 
 ## Sample image of a game
 
