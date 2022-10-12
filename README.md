@@ -1,5 +1,5 @@
 # Sea battle game
-Simple multiplayer game, that allows to play sea battle for two players on one screen.
+Simple multiplayer game, that allows to play sea battle for two kacperkruger.seabattle.players on one screen.
 
 ## Technologies
 Project is created with:
@@ -18,9 +18,9 @@ $ sbt run
 
 ## Description
 
-The project is a simple turn based variations about sea battle game, for two players on one screen.
+The project is a simple turn based variations about sea battle game, for two kacperkruger.seabattle.players on one screen.
 
-The game is consist of placing your ships on the board and the destroying all your opponent's ships. 
+The game is consist of placing your kacperkruger.seabattle.ships on the board and the destroying all your opponent's kacperkruger.seabattle.ships. 
 
 ## Sample image of a game
 
